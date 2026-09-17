@@ -238,18 +238,194 @@
   // file is ever embedded somewhere unexpected. Set it once you know the
   // exact domain your Formester form is served from (e.g. a formester.com
   // subdomain, or a custom domain if you've connected one).
-  var PARENT_ORIGIN = "*"; // TODO: replace "*" with e.g. "https://formester.com"
+var PARENT_ORIGIN = "*";
 
-  // FUTURE AVAILABILITY SYSTEM
-  // Populate this array later (or fetch it from a backend) with real
-  // booked/unavailable ranges. Every date in the array is treated as an
-  // inclusive whole day. Nothing needs to change elsewhere in this file
-  // when you wire this up to real data — isRangeAvailable() already
-  // consults it on every selection.
-  var unavailableRanges = [
-    // Example shape — leave empty until real data is available:
-    // { start: "2026-09-20", end: "2026-09-23" }
-  ];
+/* =========================================================
+   SUPABASE
+   ========================================================= */
+
+var SUPABASE_URL = "https://qbxnpqvnmtywhcgfojlr.supabase.co";
+var SUPABASE_PUBLISHABLE_KEY = "sb_publishable_XTmDowS7S9aignZQceMqVw_o30mbHLL";
+
+/*
+   For this first test, we are checking:
+
+   Midnight Dress
+   Size XS
+
+   Later this will become dynamic based on the dress
+   and size selected by the customer.
+*/
+
+var CURRENT_DRESS_SLUG = "midnight-dress";
+var CURRENT_SIZE = "XS";
+
+/*
+   Filled automatically from Supabase.
+*/
+var unavailableRanges = [];
+
+var availabilityLoaded = false;
+
+
+/* =========================================================
+   LOAD RESERVATIONS FROM SUPABASE
+   ========================================================= */
+
+async function loadUnavailableRanges() {
+
+  try {
+
+    /*
+      STEP 1:
+      Find Midnight Dress by slug.
+    */
+
+    var dressResponse = await fetch(
+      SUPABASE_URL +
+      "/rest/v1/dresses?slug=eq." +
+      encodeURIComponent(CURRENT_DRESS_SLUG) +
+      "&select=id",
+      {
+        headers: {
+          "apikey": SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": "Bearer " + SUPABASE_PUBLISHABLE_KEY
+        }
+      }
+    );
+
+    if (!dressResponse.ok) {
+      throw new Error(
+        "Could not load dress. HTTP " +
+        dressResponse.status
+      );
+    }
+
+    var dresses = await dressResponse.json();
+
+    if (!dresses.length) {
+      throw new Error("Dress not found.");
+    }
+
+    var dressId = dresses[0].id;
+
+
+    /*
+      STEP 2:
+      Find the inventory record for XS.
+    */
+
+    var inventoryResponse = await fetch(
+      SUPABASE_URL +
+      "/rest/v1/inventory?dress_id=eq." +
+      dressId +
+      "&size=eq." +
+      encodeURIComponent(CURRENT_SIZE) +
+      "&select=id",
+      {
+        headers: {
+          "apikey": SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": "Bearer " + SUPABASE_PUBLISHABLE_KEY
+        }
+      }
+    );
+
+    if (!inventoryResponse.ok) {
+      throw new Error(
+        "Could not load inventory. HTTP " +
+        inventoryResponse.status
+      );
+    }
+
+    var inventory = await inventoryResponse.json();
+
+    if (!inventory.length) {
+      throw new Error("Dress size not found.");
+    }
+
+    var inventoryId = inventory[0].id;
+
+
+    /*
+      STEP 3:
+      Load confirmed reservations for that
+      exact dress + size.
+    */
+
+    var reservationResponse = await fetch(
+      SUPABASE_URL +
+      "/rest/v1/reservations?inventory_id=eq." +
+      inventoryId +
+      "&status=eq.confirmed" +
+      "&select=pickup_date,return_date",
+      {
+        headers: {
+          "apikey": SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": "Bearer " + SUPABASE_PUBLISHABLE_KEY
+        }
+      }
+    );
+
+    if (!reservationResponse.ok) {
+      throw new Error(
+        "Could not load reservations. HTTP " +
+        reservationResponse.status
+      );
+    }
+
+    var reservations =
+      await reservationResponse.json();
+
+
+    /*
+      Convert Supabase rows into the format
+      your existing availability checker expects.
+    */
+
+    unavailableRanges =
+      reservations.map(function (reservation) {
+
+        return {
+          start: reservation.pickup_date,
+          end: reservation.return_date
+        };
+
+      });
+
+
+    availabilityLoaded = true;
+
+    console.log(
+      "Clothes Bar unavailable dates:",
+      unavailableRanges
+    );
+
+
+    /*
+      Re-check current selection if the customer
+      already selected something while loading.
+    */
+
+    if (state.pickup) {
+      recalcAndValidate();
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Clothes Bar availability error:",
+      error
+    );
+
+    availabilityLoaded = false;
+
+    showError(
+      "We couldn't verify availability right now. Please refresh the page and try again."
+    );
+
+  }
+
+}
 
   // ---------------------------------------------------------------------
   // DATE HELPERS (all local-time — never parse/format through UTC)
@@ -484,7 +660,10 @@
   // INIT
   // ---------------------------------------------------------------------
 
-  pickupInput.min = toISO(startOfToday());
+ pickupInput.min = toISO(startOfToday());
+
+loadUnavailableRanges();
+
 })();
 </script>
 

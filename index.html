@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clothes Bar Rentals — Select Your Rental Dates</title>
+
+<!-- Google Fonts: Cormorant Garamond for the display heading, Inter for everything else -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --burgundy: #7B1029;
+    --burgundy-dark: #5E0C1F;
+    --bg: #FFFFFF;
+    --gray-bg: #F5F3F1;
+    --border: #E3DEDA;
+    --text: #1B1615;
+    --text-muted: #6E6663;
+    --error: #A32538;
+    --error-bg: #FBEAEC;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent; /* blend into whatever container Formester renders around it */
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .widget {
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 28px 22px 24px;
+  }
+
+  header { margin-bottom: 22px; }
+
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 26px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    margin: 0 0 8px;
+    color: var(--text);
+  }
+
+  .subtitle {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  .field-group { margin-bottom: 20px; }
+
+  .field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .period-options {
+    display: flex;
+    gap: 10px;
+  }
+
+  .period-btn {
+    flex: 1;
+    padding: 12px 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .period-btn:hover { border-color: var(--burgundy); }
+
+  .period-btn[aria-pressed="true"] {
+    background: var(--burgundy);
+    color: #FFFFFF;
+    border-color: var(--burgundy);
+  }
+
+  .period-btn:focus-visible {
+    outline: 2px solid var(--burgundy);
+    outline-offset: 2px;
+  }
+
+  .date-input {
+    width: 100%;
+    padding: 12px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .date-input:focus-visible {
+    outline: 2px solid var(--burgundy);
+    outline-offset: 1px;
+    border-color: var(--burgundy);
+  }
+
+  .error-message {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--error);
+    background: var(--error-bg);
+    border-radius: 10px;
+    padding: 11px 14px;
+    margin-bottom: 20px;
+  }
+
+  .summary-card {
+    background: var(--gray-bg);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+  }
+
+  .summary-card h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin: 0 0 12px;
+    color: var(--burgundy);
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 14.5px;
+    padding: 6px 0;
+  }
+
+  .summary-row span:first-child {
+    color: var(--text-muted);
+  }
+
+  .summary-row span:last-child {
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .disclaimer {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  @media (max-width: 380px) {
+    .widget { padding: 22px 16px 20px; }
+    h1 { font-size: 22px; }
+    .period-btn { font-size: 12px; padding: 11px 6px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="widget">
+  <header>
+    <h1>Select Your Rental Dates</h1>
+    <p class="subtitle">Choose your rental period and preferred pick-up date.</p>
+  </header>
+
+  <section class="field-group">
+    <span class="field-label">Rental Period</span>
+    <div class="period-options" role="group" aria-label="Rental period">
+      <button type="button" class="period-btn" data-period="4" aria-pressed="true">4 Days</button>
+      <button type="button" class="period-btn" data-period="8" aria-pressed="false">8 Days</button>
+      <button type="button" class="period-btn" data-period="10plus" aria-pressed="false">10+ Days</button>
+    </div>
+  </section>
+
+  <section class="field-group">
+    <label class="field-label" for="pickup-date">Pick-up Date</label>
+    <input type="date" id="pickup-date" class="date-input">
+  </section>
+
+  <section class="field-group" id="return-group" hidden>
+    <label class="field-label" for="return-date">Return Date</label>
+    <input type="date" id="return-date" class="date-input">
+  </section>
+
+  <div id="error-message" class="error-message" role="alert" aria-live="polite" hidden></div>
+
+  <section class="summary-card" id="summary-card" hidden>
+    <h2>Your Rental</h2>
+    <div class="summary-row"><span>Rental Period</span><span id="summary-period"></span></div>
+    <div class="summary-row"><span>Pick-up</span><span id="summary-pickup"></span></div>
+    <div class="summary-row"><span>Return</span><span id="summary-return"></span></div>
+  </section>
+
+  <p class="disclaimer">Your selected dates are subject to availability and booking confirmation by Clothes Bar Rentals.</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------------------------------------------------------------------
+  // CONFIG
+  // ---------------------------------------------------------------------
+
+  // The origin of the page that will contain this iframe (your published
+  // Formester form). Restricting this instead of using "*" stops other
+  // sites from being able to receive your postMessage payloads if this
+  // file is ever embedded somewhere unexpected. Set it once you know the
+  // exact domain your Formester form is served from (e.g. a formester.com
+  // subdomain, or a custom domain if you've connected one).
+  var PARENT_ORIGIN = "*"; // TODO: replace "*" with e.g. "https://formester.com"
+
+  // FUTURE AVAILABILITY SYSTEM
+  // Populate this array later (or fetch it from a backend) with real
+  // booked/unavailable ranges. Every date in the array is treated as an
+  // inclusive whole day. Nothing needs to change elsewhere in this file
+  // when you wire this up to real data — isRangeAvailable() already
+  // consults it on every selection.
+  var unavailableRanges = [
+    // Example shape — leave empty until real data is available:
+    // { start: "2026-09-20", end: "2026-09-23" }
+  ];
+
+  // ---------------------------------------------------------------------
+  // DATE HELPERS (all local-time — never parse/format through UTC)
+  // ---------------------------------------------------------------------
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  // "YYYY-MM-DD" -> local Date at midnight. Deliberately avoids
+  // `new Date(str)`, which Chrome/Safari parse as UTC midnight and can
+  // display as the previous day in timezones behind UTC (e.g. the US).
+  function fromISO(str) {
+    var parts = str.split('-').map(Number);
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+  }
+
+  // Local Date -> "YYYY-MM-DD", using local getters (not toISOString,
+  // which also converts to UTC first).
+  function toISO(date) {
+    return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
+  }
+
+  function formatLong(date) {
+    return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }
+
+  function addDays(date, n) {
+    var d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    d.setDate(d.getDate() + n);
+    return d;
+  }
+
+  function startOfToday() {
+    var t = new Date();
+    return new Date(t.getFullYear(), t.getMonth(), t.getDate());
+  }
+
+  // Inclusive day count between two local Dates (pickup counts as Day 1).
+  function durationDays(pickup, ret) {
+    var oneDay = 24 * 60 * 60 * 1000;
+    return Math.round((ret - pickup) / oneDay) + 1;
+  }
+
+  // ---------------------------------------------------------------------
+  // AVAILABILITY (structured now, populated later)
+  // ---------------------------------------------------------------------
+
+  function isRangeAvailable(pickup, ret, ranges) {
+    for (var i = 0; i < ranges.length; i++) {
+      var blockedStart = fromISO(ranges[i].start);
+      var blockedEnd = fromISO(ranges[i].end);
+      // Overlap test for two inclusive date ranges.
+      if (pickup <= blockedEnd && ret >= blockedStart) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // ---------------------------------------------------------------------
+  // DOM REFERENCES
+  // ---------------------------------------------------------------------
+
+  var periodButtons = Array.prototype.slice.call(document.querySelectorAll('.period-btn'));
+  var pickupInput = document.getElementById('pickup-date');
+  var returnGroup = document.getElementById('return-group');
+  var returnInput = document.getElementById('return-date');
+  var errorEl = document.getElementById('error-message');
+  var summaryCard = document.getElementById('summary-card');
+  var summaryPeriod = document.getElementById('summary-period');
+  var summaryPickup = document.getElementById('summary-pickup');
+  var summaryReturn = document.getElementById('summary-return');
+
+  // ---------------------------------------------------------------------
+  // STATE
+  // ---------------------------------------------------------------------
+
+  var state = {
+    period: '4',      // '4' | '8' | '10plus'
+    pickup: null,      // Date | null
+    returnDate: null   // Date | null
+  };
+
+  // ---------------------------------------------------------------------
+  // RENDERING
+  // ---------------------------------------------------------------------
+
+  function showError(message) {
+    errorEl.textContent = message;
+    errorEl.hidden = false;
+    summaryCard.hidden = true;
+  }
+
+  function clearError() {
+    errorEl.hidden = true;
+    errorEl.textContent = '';
+  }
+
+  function periodLabel(period, computedDays) {
+    if (period === '10plus') return computedDays + ' Days';
+    return period + ' Days';
+  }
+
+  function renderSummary(returnDate) {
+    var days = durationDays(state.pickup, returnDate);
+    summaryPeriod.textContent = periodLabel(state.period, days);
+    summaryPickup.textContent = formatLong(state.pickup);
+    summaryReturn.textContent = formatLong(returnDate);
+    summaryCard.hidden = false;
+  }
+
+  // ---------------------------------------------------------------------
+  // CORE LOGIC
+  // ---------------------------------------------------------------------
+
+  function periodLengthDays(period) {
+    // Only meaningful for the two fixed periods; 10plus is user-driven.
+    return period === '4' ? 4 : 8;
+  }
+
+  function recalcAndValidate() {
+    clearError();
+
+    if (!state.pickup) {
+      summaryCard.hidden = true;
+      return;
+    }
+
+    if (state.pickup < startOfToday()) {
+      showError('Pick-up date cannot be in the past. Please choose another date.');
+      return;
+    }
+
+    if (state.period === '10plus') {
+      var minReturn = addDays(state.pickup, 9); // pickup + 9 = 10 calendar days inclusive
+      returnInput.min = toISO(minReturn);
+
+      // Default the field to the earliest permitted date the first time
+      // it appears, or whenever the pickup date shifts the floor above
+      // the currently chosen return date.
+      if (!state.returnDate || state.returnDate < minReturn) {
+        state.returnDate = minReturn;
+        returnInput.value = toISO(minReturn);
+      }
+
+      if (state.returnDate < minReturn) {
+        showError('For 10+ day rentals, the return date must be at least 10 calendar days after pick-up.');
+        return;
+      }
+
+      if (!isRangeAvailable(state.pickup, state.returnDate, unavailableRanges)) {
+        showError('Some of these dates are already booked. Please choose a different pick-up or return date.');
+        return;
+      }
+
+      renderSummary(state.returnDate);
+      sendSelection(state.returnDate);
+    } else {
+      var computedReturn = addDays(state.pickup, periodLengthDays(state.period) - 1);
+      state.returnDate = computedReturn;
+
+      if (!isRangeAvailable(state.pickup, computedReturn, unavailableRanges)) {
+        showError('These dates are already booked. Please choose a different pick-up date or a different rental period.');
+        return;
+      }
+
+      renderSummary(computedReturn);
+      sendSelection(computedReturn);
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // FORMESTER INTEGRATION — postMessage
+  // ---------------------------------------------------------------------
+  //
+  // This iframe cannot reach into Formester's own form fields directly
+  // (different origin, sandboxed). Every time a valid selection is made,
+  // it emits a structured message to the parent window instead. See the
+  // accompanying integration notes for what needs to run on the parent
+  // (Formester) side to actually save these values into your form.
+
+  function sendSelection(returnDate) {
+    var days = durationDays(state.pickup, returnDate);
+    var payload = {
+      type: 'clothesbar-rental-selection',
+      rentalPeriod: periodLabel(state.period, days),
+      pickupDate: toISO(state.pickup),
+      returnDate: toISO(returnDate),
+      rentalDays: days
+    };
+    window.parent.postMessage(payload, PARENT_ORIGIN);
+  }
+
+  // ---------------------------------------------------------------------
+  // EVENT WIRING
+  // ---------------------------------------------------------------------
+
+  periodButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      periodButtons.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
+      state.period = btn.getAttribute('data-period');
+
+      if (state.period === '10plus') {
+        returnGroup.hidden = false;
+      } else {
+        returnGroup.hidden = true;
+        state.returnDate = null; // recomputed automatically in recalcAndValidate
+      }
+
+      recalcAndValidate();
+    });
+  });
+
+  pickupInput.addEventListener('change', function () {
+    if (!pickupInput.value) {
+      state.pickup = null;
+      summaryCard.hidden = true;
+      clearError();
+      return;
+    }
+    state.pickup = fromISO(pickupInput.value);
+    recalcAndValidate();
+  });
+
+  returnInput.addEventListener('change', function () {
+    if (!returnInput.value) return;
+    state.returnDate = fromISO(returnInput.value);
+    recalcAndValidate();
+  });
+
+  // ---------------------------------------------------------------------
+  // INIT
+  // ---------------------------------------------------------------------
+
+  pickupInput.min = toISO(startOfToday());
+})();
+</script>
+
+</body>
+</html>
